@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="format-detection" content="telephone=no">
+    <!-- 微信分享优化 -->
+    <meta property="og:title" content="NBA雷霆vs步行者抢七投票">
+    <meta property="og:description" content="快来为你支持的球队投票！总决赛抢七大战">
+    <meta property="og:image" content="https://your-domain.com/share-image.jpg">
+    <title>NBA抢七大战投票</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(255, 107, 53, 0.3);
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: #ccc;
+            margin-bottom: 15px;
+        }
+
+        .countdown {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 10px 20px;
+            font-size: 14px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .vs-section {
+            text-align: center;
+            margin: 40px 0;
+            position: relative;
+        }
+
+        .teams-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 30px 0;
+        }
+
+        .team-card {
+            width: 45%;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .team-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .team-card.voted {
+            border-color: #4CAF50;
+            background: rgba(76, 175, 80, 0.1);
+        }
+
+        .thunder {
+            background: linear-gradient(135deg, rgba(0, 125, 195, 0.2), rgba(239, 59, 36, 0.2));
+            border-color: rgba(0, 125, 195, 0.3);
+        }
+
+        .thunder:hover, .thunder.voted {
+            border-color: #007DC3;
+            box-shadow: 0 10px 30px rgba(0, 125, 195, 0.3);
+        }
+
+        .pacers {
+            background: linear-gradient(135deg, rgba(0, 45, 98, 0.2), rgba(253, 187, 48, 0.2));
+            border-color: rgba(0, 45, 98, 0.3);
+        }
+
+        .pacers:hover, .pacers.voted {
+            border-color: #002D62;
+            box-shadow: 0 10px 30px rgba(0, 45, 98, 0.3);
+        }
+
+        .team-logo {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .thunder .team-logo {
+            background: linear-gradient(45deg, #007DC3, #EF3B24);
+        }
+
+        .pacers .team-logo {
+            background: linear-gradient(45deg, #002D62, #FDBB30);
+        }
+
+        .team-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .team-slogan {
+            font-size: 12px;
+            color: #ccc;
+            margin-bottom: 15px;
+        }
+
+        .vote-count {
+            font-size: 20px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        .vs-symbol {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff6b35;
+            text-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
+            position: relative;
+            z-index: 2;
+        }
+
+        .progress-section {
+            margin: 30px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .progress-title {
+            text-align: center;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .progress-bar {
+            height: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill-thunder {
+            height: 100%;
+            background: linear-gradient(90deg, #007DC3, #EF3B24);
+            border-radius: 15px 0 0 15px;
+            transition: width 0.5s ease;
+            position: relative;
+        }
+
+        .progress-fill-pacers {
+            height: 100%;
+            background: linear-gradient(90deg, #FDBB30, #002D62);
+            border-radius: 0 15px 15px 0;
+            transition: width 0.5s ease;
+            position: absolute;
+            right: 0;
+            top: 0;
+        }
+
+        .progress-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .stats-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            backdrop-filter: blur(10px);
+        }
+
+        .stats-title {
+            text-align: center;
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: #ff6b35;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            text-align: center;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .stat-number {
+            font-size: 20px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #ccc;
+        }
+
+        .share-section {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .share-btn {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+
+        .share-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 53, 0.4);
+        }
+
+        .basketball-bg {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #ff6b35, #d4490a);
+            opacity: 0.1;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .basketball-bg:nth-child(1) {
+            top: 10%;
+            left: -20px;
+            animation-delay: 0s;
+        }
+
+        .basketball-bg:nth-child(2) {
+            top: 50%;
+            right: -30px;
+            animation-delay: 2s;
+        }
+
+        .basketball-bg:nth-child(3) {
+            bottom: 20%;
+            left: -10px;
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        .celebration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        @keyframes confetti {
+            0% { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #ff6b35;
+            animation: confetti 3s ease-out forwards;
+        }
+    </style>
+</head>
+<body>
+    <div class="basketball-bg"></div>
+    <div class="basketball-bg"></div>
+    <div class="basketball-bg"></div>
+
+    <div class="container">
+        <div class="header">
+            <div class="title">🏀 NBA抢七大战</div>
+            <div class="subtitle">总决赛 Game 7</div>
+            <div class="countdown">
+                ⏰ 距离比赛开始: <span id="countdown">2小时30分钟</span>
+            </div>
+        </div>
+
+        <div class="vs-section">
+            <div class="teams-container">
+                <div class="team-card thunder" onclick="vote('thunder')">
+                    <div class="team-logo">⚡</div>
+                    <div class="team-name">俄克拉荷马雷霆</div>
+                    <div class="team-slogan">Thunder Up!</div>
+                    <div class="vote-count" id="thunder-votes">0</div>
+                </div>
+
+                <div class="vs-symbol">VS</div>
+
+                <div class="team-card pacers" onclick="vote('pacers')">
+                    <div class="team-logo">🏁</div>
+                    <div class="team-name">印第安纳步行者</div>
+                    <div class="team-slogan">Boom Baby!</div>
+                    <div class="vote-count" id="pacers-votes">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="progress-section">
+            <div class="progress-title">📊 实时投票结果</div>
+            <div class="progress-bar">
+                <div class="progress-fill-thunder" id="thunder-progress" style="width: 50%"></div>
+                <div class="progress-fill-pacers" id="pacers-progress" style="width: 50%"></div>
+            </div>
+            <div class="progress-stats">
+                <span>雷霆 <span id="thunder-percent">50%</span></span>
+                <span>步行者 <span id="pacers-percent">50%</span></span>
+            </div>
+        </div>
+
+        <div class="stats-section">
+            <div class="stats-title">🔥 群内统计</div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number" id="total-votes">0</div>
+                    <div class="stat-label">总投票数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="participation">0%</div>
+                    <div class="stat-label">参与率</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="leading-team">-</div>
+                    <div class="stat-label">领先球队</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="lead-margin">0%</div>
+                    <div class="stat-label">领先优势</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="share-section">
+            <button class="share-btn" onclick="shareToWechat()">
+                📱 分享到微信群
+            </button>
+        </div>
+    </div>
+
+    <div class="celebration" id="celebration"></div>
+
+    <script>
+        let votes = {
+            thunder: 0,
+            pacers: 0
+        };
+        
+        let hasVoted = false;
+        const totalGroupMembers = 50; // 模拟群成员数
+
+        function vote(team) {
+            if (hasVoted) {
+                alert('您已经投过票了！');
+                return;
+            }
+
+            votes[team]++;
+            hasVoted = true;
+            
+            // 更新界面
+            updateDisplay();
+            
+            // 添加投票效果
+            document.querySelector(`.${team}`).classList.add('voted');
+            
+            // 播放庆祝动画
+            celebrate();
+            
+            // 模拟其他人的投票（演示用）
+            setTimeout(() => {
+                simulateOtherVotes();
+            }, 1000);
+        }
+
+        function updateDisplay() {
+            const total = votes.thunder + votes.pacers;
+            
+            // 更新投票数
+            document.getElementById('thunder-votes').textContent = votes.thunder;
+            document.getElementById('pacers-votes').textContent = votes.pacers;
+            
+            // 更新百分比
+            const thunderPercent = total > 0 ? Math.round((votes.thunder / total) * 100) : 50;
+            const pacersPercent = 100 - thunderPercent;
+            
+            document.getElementById('thunder-percent').textContent = thunderPercent + '%';
+            document.getElementById('pacers-percent').textContent = pacersPercent + '%';
+            
+            // 更新进度条
+            document.getElementById('thunder-progress').style.width = thunderPercent + '%';
+            document.getElementById('pacers-progress').style.width = pacersPercent + '%';
+            
+            // 更新统计信息
+            document.getElementById('total-votes').textContent = total;
+            document.getElementById('participation').textContent = Math.round((total / totalGroupMembers) * 100) + '%';
+            
+            const leadingTeam = votes.thunder > votes.pacers ? '雷霆' : votes.pacers > votes.thunder ? '步行者' : '平局';
+            document.getElementById('leading-team').textContent = leadingTeam;
+            
+            const leadMargin = Math.abs(thunderPercent - pacersPercent);
+            document.getElementById('lead-margin').textContent = leadMargin + '%';
+        }
+
+        function celebrate() {
+            const celebration = document.getElementById('celebration');
+            
+            // 创建彩带效果
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.animationDelay = Math.random() * 3 + 's';
+                confetti.style.backgroundColor = ['#ff6b35', '#f7931e', '#4CAF50', '#007DC3', '#EF3B24'][Math.floor(Math.random() * 5)];
+                celebration.appendChild(confetti);
+                
+                setTimeout(() => {
+                    confetti.remove();
+                }, 3000);
+            }
+        }
+
+        function simulateOtherVotes() {
+            // 模拟其他群成员投票
+            const randomVotes = Math.floor(Math.random() * 20) + 10;
+            for (let i = 0; i < randomVotes; i++) {
+                const team = Math.random() > 0.5 ? 'thunder' : 'pacers';
+                votes[team]++;
+            }
+            updateDisplay();
+        }
+
+        function shareToWechat() {
+            const total = votes.thunder + votes.pacers;
+            const thunderPercent = total > 0 ? Math.round((votes.thunder / total) * 100) : 50;
+            const pacersPercent = 100 - thunderPercent;
+            
+            const message = `🏀 NBA抢七大战投票进行中！
+
+⚡ 雷霆: ${votes.thunder}票 (${thunderPercent}%)
+🏁 步行者: ${votes.pacers}票 (${pacersPercent}%)
+
+快来投票：${window.location.href}`;
+            
+            // 尝试使用原生分享API
+            if (navigator.share) {
+                navigator.share({
+                    title: 'NBA抢七大战投票',
+                    text: message,
+                    url: window.location.href
+                }).catch(err => console.log('分享失败', err));
+            } else {
+                // 复制链接到剪贴板
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(window.location.href).then(() => {
+                        alert('链接已复制到剪贴板！\n可以粘贴到微信群分享');
+                    }).catch(() => {
+                        fallbackCopyTextToClipboard();
+                    });
+                } else {
+                    fallbackCopyTextToClipboard();
+                }
+            }
+        }
+
+        function fallbackCopyTextToClipboard() {
+            const textarea = document.createElement('textarea');
+            textarea.value = window.location.href;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                alert('链接已复制到剪贴板！\n可以粘贴到微信群分享');
+            } catch (err) {
+                alert('请手动复制链接：\n' + window.location.href);
+            }
+            document.body.removeChild(textarea);
+        }
+
+        // 防止微信浏览器下拉刷新和双击缩放
+        document.addEventListener('touchstart', function(e) {
+            if (e.touches.length > 1) {
+                e.preventDefault();
+            }
+        });
+        
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function(e) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+
+        // 初始化倒计时
+        function updateCountdown() {
+            const now = new Date();
+            const gameTime = new Date(now.getTime() + 2.5 * 60 * 60 * 1000); // 2.5小时后
+            const diff = gameTime - now;
+            
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            
+            document.getElementById('countdown').textContent = `${hours}小时${minutes}分钟`;
+        }
+
+        setInterval(updateCountdown, 60000); // 每分钟更新
+        updateDisplay(); // 初始化显示
+    </script>
+</body>
+</html>
