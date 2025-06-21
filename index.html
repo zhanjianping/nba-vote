@@ -9,6 +9,7 @@
     <meta property="og:description" content="快来为你支持的球队投票！总决赛抢七大战">
     <meta property="og:image" content="https://your-domain.com/share-image.jpg">
     <title>NBA抢七大战投票</title>
+    <script src="config.js"></script>
     <style>
         * {
             margin: 0;
@@ -57,14 +58,7 @@
             margin-bottom: 15px;
         }
 
-        .countdown {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 10px 20px;
-            font-size: 14px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
+
 
         .vs-section {
             text-align: center;
@@ -346,9 +340,7 @@
         <div class="header">
             <div class="title">🏀 NBA抢七大战</div>
             <div class="subtitle">总决赛 Game 7</div>
-            <div class="countdown">
-                ⏰ 距离比赛开始: <span id="countdown">2小时30分钟</span>
-            </div>
+
         </div>
 
         <div class="vs-section">
@@ -407,7 +399,7 @@
 
         <div class="share-section">
             <button class="share-btn" onclick="shareToWechat()">
-                📱 分享到微信群
+                📱 英特篮球群专用
             </button>
         </div>
     </div>
@@ -415,119 +407,168 @@
     <div class="celebration" id="celebration"></div>
 
     <script>
-        let votes = {
-            thunder: 0,
-            pacers: 0
-        };
+        // API配置
+        const API_BASE = window.location.origin; // 使用当前域名
         
-        let hasVoted = false;
-        const totalGroupMembers = 50; // 模拟群成员数
+        let votes = { thunder: 0, pacers: 0 }; // 投票数据存储
+        let hasVoted = false; // 是否已投票标记
+        let userVote = null; // 用户投票选择
 
-        function vote(team) {
+        // 从服务器加载投票数据
+        async function loadVotesFromServer() {
+            try {
+                const response = await fetch(`${API_BASE}/api/votes`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    votes = data.votes;
+                    hasVoted = data.hasVoted;
+                    userVote = data.userVote;
+                    return true;
+                } else {
+                    console.error('加载投票数据失败:', data.error);
+                    return false;
+                }
+            } catch (error) {
+                console.error('连接服务器失败:', error);
+                return false;
+            }
+        }
+
+        // 向服务器提交投票
+        async function submitVoteToServer(team) {
+            try {
+                const response = await fetch(`${API_BASE}/api/vote`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ team })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    votes = data.votes;
+                    hasVoted = data.hasVoted;
+                    userVote = data.userVote;
+                    return { success: true, message: data.message };
+                } else {
+                    return { success: false, error: data.error };
+                }
+            } catch (error) {
+                console.error('提交投票失败:', error);
+                return { success: false, error: '网络连接失败，请检查网络后重试' };
+            }
+        }
+        const totalGroupMembers = CONFIG.GROUP_SETTINGS.totalMembers; // 模拟群成员总数
+
+        async function vote(team) { // 投票函数
             if (hasVoted) {
-                alert('您已经投过票了！');
+                alert(CONFIG.UI_TEXT.votedAlert);
                 return;
             }
 
-            votes[team]++;
-            hasVoted = true;
+            // 显示加载状态
+            const teamCard = document.querySelector(`.${team}`);
+            const originalContent = teamCard.innerHTML;
+            teamCard.innerHTML = '<div style="padding: 20px;">投票中...</div>';
+            teamCard.style.pointerEvents = 'none';
+
+            // 提交投票到服务器
+            const result = await submitVoteToServer(team);
             
-            // 更新界面
-            updateDisplay();
-            
-            // 添加投票效果
-            document.querySelector(`.${team}`).classList.add('voted');
-            
-            // 播放庆祝动画
-            celebrate();
-            
-            // 模拟其他人的投票（演示用）
-            setTimeout(() => {
-                simulateOtherVotes();
-            }, 1000);
+            if (result.success) {
+                updateDisplay(); // 更新显示
+                teamCard.classList.add('voted'); // 添加投票样式
+                celebrate(); // 播放庆祝动画
+                
+                // 显示成功消息
+                setTimeout(() => {
+                    alert(result.message || '投票成功！');
+                }, 500);
+            } else {
+                // 恢复原始内容
+                teamCard.innerHTML = originalContent;
+                teamCard.style.pointerEvents = 'auto';
+                alert(result.error || '投票失败，请重试');
+            }
         }
 
-        function updateDisplay() {
+        function updateDisplay() { // 更新界面显示数据
             const total = votes.thunder + votes.pacers;
             
-            // 更新投票数
-            document.getElementById('thunder-votes').textContent = votes.thunder;
-            document.getElementById('pacers-votes').textContent = votes.pacers;
+            document.getElementById('thunder-votes').textContent = votes.thunder; // 更新雷霆票数
+            document.getElementById('pacers-votes').textContent = votes.pacers; // 更新步行者票数
             
-            // 更新百分比
-            const thunderPercent = total > 0 ? Math.round((votes.thunder / total) * 100) : 50;
-            const pacersPercent = 100 - thunderPercent;
+            const thunderPercent = total > 0 ? Math.round((votes.thunder / total) * 100) : 50; // 计算雷霆百分比
+            const pacersPercent = 100 - thunderPercent; // 计算步行者百分比
             
             document.getElementById('thunder-percent').textContent = thunderPercent + '%';
             document.getElementById('pacers-percent').textContent = pacersPercent + '%';
             
-            // 更新进度条
-            document.getElementById('thunder-progress').style.width = thunderPercent + '%';
+            document.getElementById('thunder-progress').style.width = thunderPercent + '%'; // 更新进度条
             document.getElementById('pacers-progress').style.width = pacersPercent + '%';
             
-            // 更新统计信息
-            document.getElementById('total-votes').textContent = total;
-            document.getElementById('participation').textContent = Math.round((total / totalGroupMembers) * 100) + '%';
+            document.getElementById('total-votes').textContent = total; // 更新总票数
+            document.getElementById('participation').textContent = Math.round((total / totalGroupMembers) * 100) + '%'; // 更新参与率
             
-            const leadingTeam = votes.thunder > votes.pacers ? '雷霆' : votes.pacers > votes.thunder ? '步行者' : '平局';
+            const leadingTeam = votes.thunder > votes.pacers ? CONFIG.TEAMS.thunder.name : votes.pacers > votes.thunder ? CONFIG.TEAMS.pacers.name : CONFIG.UI_TEXT.stats.tie; // 计算领先球队
             document.getElementById('leading-team').textContent = leadingTeam;
             
-            const leadMargin = Math.abs(thunderPercent - pacersPercent);
+            const leadMargin = Math.abs(thunderPercent - pacersPercent); // 计算领先优势
             document.getElementById('lead-margin').textContent = leadMargin + '%';
         }
 
-        function celebrate() {
+        function celebrate() { // 庆祝动画效果
             const celebration = document.getElementById('celebration');
             
-            // 创建彩带效果
-            for (let i = 0; i < 50; i++) {
+            for (let i = 0; i < CONFIG.ANIMATION_SETTINGS.confettiCount; i++) { // 创建彩带
                 const confetti = document.createElement('div');
                 confetti.className = 'confetti';
                 confetti.style.left = Math.random() * 100 + '%';
                 confetti.style.animationDelay = Math.random() * 3 + 's';
-                confetti.style.backgroundColor = ['#ff6b35', '#f7931e', '#4CAF50', '#007DC3', '#EF3B24'][Math.floor(Math.random() * 5)];
+                confetti.style.backgroundColor = CONFIG.ANIMATION_SETTINGS.confettiColors[Math.floor(Math.random() * CONFIG.ANIMATION_SETTINGS.confettiColors.length)];
                 celebration.appendChild(confetti);
                 
                 setTimeout(() => {
                     confetti.remove();
-                }, 3000);
+                }, CONFIG.ANIMATION_SETTINGS.confettiDuration);
             }
         }
 
-        function simulateOtherVotes() {
-            // 模拟其他群成员投票
-            const randomVotes = Math.floor(Math.random() * 20) + 10;
+        function simulateOtherVotes() { // 模拟其他群成员投票
+            const randomVotes = Math.floor(Math.random() * (CONFIG.GROUP_SETTINGS.simulateVotesMax - CONFIG.GROUP_SETTINGS.simulateVotesMin)) + CONFIG.GROUP_SETTINGS.simulateVotesMin;
             for (let i = 0; i < randomVotes; i++) {
                 const team = Math.random() > 0.5 ? 'thunder' : 'pacers';
                 votes[team]++;
             }
+            saveVotesToStorage(); // 保存模拟投票数据
             updateDisplay();
         }
 
-        function shareToWechat() {
+        function shareToWechat() { // 分享到微信功能
             const total = votes.thunder + votes.pacers;
             const thunderPercent = total > 0 ? Math.round((votes.thunder / total) * 100) : 50;
             const pacersPercent = 100 - thunderPercent;
             
-            const message = `🏀 NBA抢七大战投票进行中！
+            const message = `${CONFIG.UI_TEXT.shareMessage}
 
-⚡ 雷霆: ${votes.thunder}票 (${thunderPercent}%)
-🏁 步行者: ${votes.pacers}票 (${pacersPercent}%)
+${CONFIG.TEAMS.thunder.emoji} ${CONFIG.TEAMS.thunder.name}: ${votes.thunder}票 (${thunderPercent}%)
+${CONFIG.TEAMS.pacers.emoji} ${CONFIG.TEAMS.pacers.name}: ${votes.pacers}票 (${pacersPercent}%)
 
 快来投票：${window.location.href}`;
             
-            // 尝试使用原生分享API
-            if (navigator.share) {
+            if (navigator.share) { // 使用原生分享API
                 navigator.share({
                     title: 'NBA抢七大战投票',
                     text: message,
                     url: window.location.href
                 }).catch(err => console.log('分享失败', err));
             } else {
-                // 复制链接到剪贴板
-                if (navigator.clipboard) {
+                if (navigator.clipboard) { // 复制到剪贴板
                     navigator.clipboard.writeText(window.location.href).then(() => {
-                        alert('链接已复制到剪贴板！\n可以粘贴到微信群分享');
+                        alert(CONFIG.UI_TEXT.copySuccess);
                     }).catch(() => {
                         fallbackCopyTextToClipboard();
                     });
@@ -537,7 +578,7 @@
             }
         }
 
-        function fallbackCopyTextToClipboard() {
+        function fallbackCopyTextToClipboard() { // 备用复制方法
             const textarea = document.createElement('textarea');
             textarea.value = window.location.href;
             textarea.style.position = 'fixed';
@@ -547,9 +588,9 @@
             textarea.select();
             try {
                 document.execCommand('copy');
-                alert('链接已复制到剪贴板！\n可以粘贴到微信群分享');
+                alert(CONFIG.UI_TEXT.copySuccess);
             } catch (err) {
-                alert('请手动复制链接：\n' + window.location.href);
+                alert(CONFIG.UI_TEXT.copyFallback + window.location.href);
             }
             document.body.removeChild(textarea);
         }
@@ -570,20 +611,16 @@
             lastTouchEnd = now;
         }, false);
 
-        // 初始化倒计时
-        function updateCountdown() {
-            const now = new Date();
-            const gameTime = new Date(now.getTime() + 2.5 * 60 * 60 * 1000); // 2.5小时后
-            const diff = gameTime - now;
-            
-            const hours = Math.floor(diff / (1000 * 60 * 60));
-            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            
-            document.getElementById('countdown').textContent = `${hours}小时${minutes}分钟`;
-        }
 
-        setInterval(updateCountdown, 60000); // 每分钟更新
-        updateDisplay(); // 初始化显示
+        // 页面加载时初始化显示和投票状态
+        updateDisplay(); // 初始化页面显示
+        
+        // 如果已经投过票，显示投票状态
+        if (hasVoted) {
+            // 根据投票数据判断用户投的哪个队
+            const userVote = votes.thunder > votes.pacers ? 'thunder' : 'pacers';
+            document.querySelector(`.${userVote}`).classList.add('voted');
+        }
     </script>
 </body>
-</html>
+</html> 
